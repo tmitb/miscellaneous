@@ -15,10 +15,10 @@ I picked ESP32-C3 because I have a ton of them laying around. The idea is to bui
 - Mechnical keyboard switches are going to be used for buttons
 
 ### BOM
-- [*] ESP32-C3 Super mini
-- [*] Shell
-- [*] Switches
-- [*] Key caps
+- [x] ESP32-C3 Super mini
+- [x] Shell
+- [x] Switches
+- [x] Key caps
 
 #### ESP32-C3 Gamepad
 I although it is possible to have 11 buttons, I opted to use only 10 of them because that looks batter.
