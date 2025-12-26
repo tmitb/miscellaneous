@@ -1,24 +1,28 @@
-/* Simple button panel
-    Copyright David Jung
+/*
+ * A simple sketch that maps a single pin on the ESP32 to a single button on the controller
+ */
 
-    This project is designed to create a BLE gamepad with 11 buttons using ESP32-C3 Super mini
-*/
 #include <Arduino.h>
 #include <GamepadDevice.h>
 #include <BleCompositeHID.h>
 
-BleCompositeHID compositeHID("11 Button Pad");
+BleCompositeHID compositeHID("2x5 PAD");
 GamepadDevice* gamepad;
-short enabledButtons[] = { 0, 1, 2, 3, 4, 5, 6, 7, 10, 20, 21 }; // All available GPIOs for ESP32-C3 super mini
+short enabledButtons[] = { 0, 1, 2, 3, 4, 5, 6, 7, 10, 20, 21 };
 int previousButtonStates[] = { HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH, HIGH };
 
 void setup() {
+  // Start the serial connection. It will be probably removed once the code is stabilized
+  Serial.begin(115200);
+
   // Setup buttons
+  Serial.println("Setup pins");
   for (int ctr = 0; ctr < sizeof(enabledButtons) / sizeof(enabledButtons[0]); ctr++) {
     pinMode(enabledButtons[ctr], INPUT_PULLUP);
   }
 
   // Start game pad
+  Serial.println("Setup the game pad");
   GamepadConfiguration config;
   config.setButtonCount(sizeof(enabledButtons) / sizeof(enabledButtons[0]));
   config.setHatSwitchCount(0);
@@ -46,13 +50,17 @@ void loop() {
       if (state != previousButtonStates[ctr]) {
         if (previousButtonStates[ctr] == LOW) {
           gamepad->release(ctr + 1);
+          Serial.print(enabledButtons[ctr]);
+          Serial.println(" Pressed");
         } else {
           gamepad->press(ctr + 1);
+          Serial.print(enabledButtons[ctr]);
+          Serial.println(" Released");
         }
         previousButtonStates[ctr] = state;
       }
 
-      // Update all buttons at once at the end of loop cycle.
+      // Update all buttons at once.
       compositeHID.sendDeferredReports();
     }
   }
