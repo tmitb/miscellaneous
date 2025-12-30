@@ -1,0 +1,8 @@
+{
+  "0": {"action": "SetCurrentScene", "params": {"scene-name": "Game"}},
+  "1": {"action": "StartRecording"},
+  "2": {"action": "StopRecording"},
+  "3": {"action": "ToggleMute", "params": {"source": "Desktop Audio"}},
+  "4": {"action": "SetCurrentScene", "params": {"scene-name": "Chat"}}
+}
+
