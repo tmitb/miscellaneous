@@ -17,8 +17,8 @@ import signal
 import sys
 from pathlib import Path
 
-from .gamepad import GamepadListener
-from .obs_bridge import ObsBridge
+from gamepad import GamepadListener
+from obs_bridge import ObsBridge
 
 
 def _signal_handler(sig, frame):  # pragma: no cover – simple graceful exit
