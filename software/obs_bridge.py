@@ -17,28 +17,39 @@ import json
 import pathlib
 from typing import Any, Dict
 
+# Import obswebsocket lazily; the library may not be installed in all environments.
 try:
     from obswebsocket import obsws, requests  # type: ignore
-except Exception as exc:  # pragma: no cover – imported at runtime only
-    raise RuntimeError(
-        "obs-websocket-py is required. Install it via\n"
-        "    pip install obs-websocket-py"
-    ) from exc
+except Exception:  # pragma: no cover – optional dependency
+    obsws = None  # type: ignore[assignment]
+    requests = None  # type: ignore[assignment]
 
 _DEFAULT_MAPPING_PATH = pathlib.Path(__file__).with_name("mapping.json")
 
 
 class ObsBridge:
-    """Maintain a connection to OBS and dispatch commands based on button presses."""
+    """Maintain a connection to OBS and dispatch commands based on button presses.
 
-    def __init__(self, host: str = "localhost", port: int = 4455, password: str | None = None,
-                 mapping_path: pathlib.Path | None = None) -> None:
+    Supports loading the mapping either from a JSON file (legacy) or directly from
+    a dictionary supplied via ``mapping_dict``. This enables a unified config
+    file that contains both connection settings and the button‑to‑OBS mapping."""
+
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 4455,
+        password: str | None = None,
+        mapping_path: pathlib.Path | None = None,
+        mapping_dict: Dict[str, Dict[str, Any]] | None = None,
+    ) -> None:
         self.host = host
         self.port = port
         self.password = password or ""
+        # ``mapping_path`` retained for compatibility; may be unused when a dict is provided.
         self.mapping_path = mapping_path or _DEFAULT_MAPPING_PATH
         self._ws: obsws | None = None
-        self._mapping: Dict[str, Dict[str, Any]] = {}
+        # Use supplied dict if given, otherwise load lazily from file.
+        self._mapping: Dict[str, Dict[str, Any]] = mapping_dict or {}
 
     # ------------------------------------------------------------------
     # Connection handling
@@ -50,6 +61,12 @@ class ObsBridge:
         """
         if self._ws is not None:
             return
+        # Ensure the optional dependency is available before creating a client.
+        if obsws is None:
+            raise RuntimeError(
+                "obs-websocket-py is required to connect to OBS. Install it via\n"
+                "    pip install obs-websocket-py"
+            )
         self._ws = obsws(self.host, self.port, self.password)
         try:
             self._ws.connect()
@@ -57,14 +74,15 @@ class ObsBridge:
             self._ws = None
             raise RuntimeError(f"Failed to connect to OBS WebSocket: {exc}") from exc
 
-        # Load mapping JSON.
-        try:
-            with open(self.mapping_path, "r", encoding="utf-8") as f:
-                self._mapping = json.load(f)
-        except FileNotFoundError as exc:
-            raise RuntimeError(
-                f"Mapping file not found at {self.mapping_path}. Create it first."
-            ) from exc
+        # Load mapping JSON only if a mapping hasn't been supplied already.
+        if not self._mapping:
+            try:
+                with open(self.mapping_path, "r", encoding="utf-8") as f:
+                    self._mapping = json.load(f)
+            except FileNotFoundError as exc:
+                raise RuntimeError(
+                    f"Mapping file not found at {self.mapping_path}. Create it first."
+                ) from exc
 
     def disconnect(self) -> None:
         if self._ws is not None:
@@ -104,6 +122,11 @@ class ObsBridge:
 
         # Map a limited set of actions to obs-websocket-py request objects.
         try:
+            if requests is None:
+                raise RuntimeError(
+                    "obs-websocket-py is required to dispatch OBS actions. Install it via\n"
+                    "    pip install obs-websocket-py"
+                )
             if action == "SetCurrentScene":
                 self._ws.call(requests.SetCurrentProgramScene(**params))
             elif action == "StartRecording":
@@ -117,4 +140,3 @@ class ObsBridge:
                 print(f"[ObsBridge] Unknown action '{action}'. Ignored.")
         except Exception as exc:  # pragma: no cover – runtime communication errors
             print(f"[ObsBridge] Failed to execute {action}: {exc}")
-

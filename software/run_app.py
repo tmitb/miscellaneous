@@ -45,20 +45,37 @@ def main() -> None:
         help="Password for OBS WebSocket if enabled",
     )
     parser.add_argument(
-        "--mapping",
+        "--config",
         type=Path,
-        default=Path(__file__).with_name("mapping.json"),
-        help="Path to JSON button‑to‑OBS mapping file",
+        default=Path(__file__).with_name("config.json"),
+        help="Path to unified configuration JSON (host, port, password, mapping)",
     )
 
     args = parser.parse_args()
 
     # Initialise OBS bridge and connect.
+    # Load unified config file.
+    try:
+        import json
+
+        with open(args.config, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        print(f"Config file not found at {args.config}. Using defaults.")
+        cfg = {}
+
+    # Resolve parameters, CLI args take precedence over config values.
+    host = cfg.get("host", args.host)
+    port = cfg.get("port", args.port)
+    password = cfg.get("password", args.password)
+    mapping_dict = cfg.get("mapping")
+
     bridge = ObsBridge(
-        host=args.host,
-        port=args.port,
-        password=args.password,
-        mapping_path=args.mapping,
+        host=host,
+        port=int(port),
+        password=password,
+        # Provide mapping dict if present; otherwise ObsBridge will load from its default path.
+        mapping_dict=mapping_dict,
     )
     try:
         bridge.connect()
@@ -79,4 +96,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
