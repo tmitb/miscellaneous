@@ -1,0 +1,67 @@
+# =========================
+# Build output
+# =========================
+bin/
+obj/
+out/
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+*.code-workspace
+
+# =========================
+# User-specific files
+# =========================
+*.user
+*.rsuser
+*.suo
+
+# =========================
+# NuGet
+# =========================
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Test & coverage (if added later)
+# =========================
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# =========================
+# Windows OS files
+# =========================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================
+# Environment / secrets
+# =========================
+.env
+.env.*
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# =========================
+# Publish output
+# =========================
+publish/
+artifacts/

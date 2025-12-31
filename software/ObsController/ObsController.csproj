@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target the latest LTS version of .NET -->
+    <!-- Use the full TFM that includes the Windows SDK version to avoid NETSDK1135 -->
+    <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ObsController</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Gamepad handling – we now use the managed Windows.Gaming.Input API.
+         SharpDX.XInput is kept only as a fallback for legacy controllers (optional).
+      -->
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
+    <!-- JSON serialization (built‑in System.Text.Json works, but Newtonsoft is common) -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- Command line parsing -->
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Unit‑test projects will reference this SDK as needed -->
+  </ItemGroup>
+
+</Project>
