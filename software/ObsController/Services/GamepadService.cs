@@ -14,13 +14,13 @@ public class GamepadService : IDisposable
     private readonly Controller _controller;
     private readonly int _pollIntervalMs = 30; // ~33 Hz polling
     private bool _running;
-    private System.Threading.CancellationTokenSource? _cts;
+    private System.Threading.CancellationTokenSource _cts;
 
     // Keep previous state to detect edge transitions (press/release)
     private GamepadButtonFlags _previousButtons = GamepadButtonFlags.None;
 
-    public event Action<string>? ButtonDown; // button name
-    public event Action<string>? ButtonUp;
+    public event Action<string> ButtonDown; // button name
+    public event Action<string> ButtonUp;
 
     /// <summary>
     /// Creates a service for the controller with the given XInput index (0‑3).

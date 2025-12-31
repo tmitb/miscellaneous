@@ -6,8 +6,8 @@ namespace ObsController.Services;
 /// </summary>
 public sealed class NullGamepadProvider : IGamepadProvider
 {
-    public event System.Action<string>? ButtonDown;
-    public event System.Action<string>? ButtonUp;
+    public event System.Action<string> ButtonDown;
+    public event System.Action<string> ButtonUp;
 
     public void Start() { /* no polling */ }
     public void Stop()  { /* no polling */ }

@@ -25,13 +25,13 @@ public sealed class RealRawGamepadProvider : IGamepadProvider
     private readonly Timer _timer; // poll at a modest rate (e.g., 30 Hz)
     private bool _running;
     // Previous raw state used for diffing. Null until the first successful poll.
-    private ObsController.Models.ControllerState? _previousState;
+    private ObsController.Models.ControllerState _previousState;
 
     // Legacy per‑button events (kept for backward compatibility)
-    public event Action<string>? ButtonDown;
-    public event Action<string>? ButtonUp;
+    public event Action<string> ButtonDown;
+    public event Action<string> ButtonUp;
     // New high‑level event that delivers only the differences between two snapshots.
-    public event Action<ObsController.Models.ControllerDelta>? StateChanged;
+    public event Action<ObsController.Models.ControllerDelta> StateChanged;
 
     /// <summary>
     /// Constructs the provider for a concrete <c>RawGameController</c> instance.
@@ -57,7 +57,7 @@ public sealed class RealRawGamepadProvider : IGamepadProvider
         _timer.Change(Timeout.Infinite, Timeout.Infinite);
     }
 
-    private void Poll(object? state)
+    private void Poll(object state)
     {
         // RawGameController exposes GetCurrentReading which returns a timestamp and an IReadOnlyList<object>
         // representing the raw report bytes. The exact type depends on the controller – for many BLE devices it is

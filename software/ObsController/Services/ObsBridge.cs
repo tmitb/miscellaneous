@@ -16,11 +16,11 @@ namespace ObsController.Services;
 public class ObsBridge : IAsyncDisposable
 {
     private readonly Uri _uri;
-    private readonly string? _password;
+    private readonly string _password;
     private ClientWebSocket _ws = new();
     private int _requestId = 1; // monotonically increasing request identifiers
 
-    public ObsBridge(string host, int port, string? password)
+    public ObsBridge(string host, int port, string password)
     {
         _uri = new Uri($"ws://{host}:{port}");
         _password = password;
@@ -85,7 +85,7 @@ public class ObsBridge : IAsyncDisposable
         return JObject.Parse(sb.ToString());
     }
 
-    private async Task<JObject> SendRequestAsync(string requestType, JObject? @params = null)
+    private async Task<JObject> SendRequestAsync(string requestType, JObject @params = null)
     {
         var id = Interlocked.Increment(ref _requestId);
         var payload = new JObject

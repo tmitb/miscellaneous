@@ -16,7 +16,7 @@ public static class ConfigLoader
     /// <summary>
     /// Reads the mapping file and returns a Mapping object. Throws if the file cannot be parsed.
     /// </summary>
-    public static Mapping Load(string? customPath = null)
+    public static Mapping Load(string customPath = null)
     {
         var path = customPath ?? DefaultMappingFile;
         if (!File.Exists(path))
@@ -37,7 +37,7 @@ public static class ConfigLoader
     /// <summary>
     /// Applies command‑line overrides onto a loaded Mapping instance.
     /// </summary>
-    public static void ApplyOverrides(Mapping mapping, string? host, int? port, string? password)
+    public static void ApplyOverrides(Mapping mapping, string host, int? port, string password)
     {
         if (!string.IsNullOrWhiteSpace(host))
             mapping.Host = host;

@@ -13,21 +13,23 @@ public static class RawGamepadProvider
     /// Attempts to locate a controller based on the optional GUID or index supplied in the mapping file.
     /// Returns an <see cref="IGamepadProvider"/> implementation (the real one) or <c>null</c> if none are found.
     /// </summary>
-    public static IGamepadProvider? TryCreate(string deviceId)
+    public static IGamepadProvider TryCreate(string deviceId)
     {
         
         var count = 0;
+        // RawGameController.RawGameControllers are designed to be asynchronous internally and the values are not available]
+        // instantly at the end of the function calls. The code keeps calling it for up to 10 seconds to make sure it gets
+        // updated before giving up.
         while (RawGameController.RawGameControllers.Count == 0 && count < 10)
         {
             Thread.Sleep(1000);
             count++;
-
         }
         
         if (RawGameController.RawGameControllers.Count == 0)
-            return null; // No raw gamepads available on this machine.
+            return new NullGamepadProvider(); // No raw gamepads available on this machine.
 
-        // If a GUID is supplied, try to match it first.
+        // If an Id is supplied, try to match it first.
         if (!string.IsNullOrWhiteSpace(deviceId))
         {
             foreach (var rc in RawGameController.RawGameControllers)

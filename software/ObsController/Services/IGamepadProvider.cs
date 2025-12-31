@@ -7,10 +7,10 @@ namespace ObsController.Services;
 public interface IGamepadProvider : System.IDisposable
 {
     /// <summary>Raised when a logical button becomes pressed.</summary>
-    event System.Action<string>? ButtonDown;
+    event System.Action<string> ButtonDown;
 
     /// <summary>Raised when a logical button is released.</summary>
-    event System.Action<string>? ButtonUp;
+    event System.Action<string> ButtonUp;
 
     /// <summary>Start polling / listening for input events.</summary>
     void Start();

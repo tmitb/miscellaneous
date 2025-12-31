@@ -24,7 +24,7 @@ public class Program
             passwordOption
         };
 
-        rootCommand.SetHandler(async (string? host, int? port, string? password) =>
+        rootCommand.SetHandler(async (host, port, password) =>
         {
             // Load configuration from mapping.json
             Mapping mapping = ConfigLoader.Load();
@@ -44,7 +44,7 @@ public class Program
 
             // Initialise controller provider using the RawGameController API (covers BLE devices)
 
-            IGamepadProvider? gp = RawGamepadProvider.TryCreate(mapping.DeviceIdentifier);
+            IGamepadProvider gp = RawGamepadProvider.TryCreate(mapping.DeviceIdentifier);
 
             if (gp == null)
             {

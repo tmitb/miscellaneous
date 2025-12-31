@@ -11,8 +11,8 @@ namespace ObsController.Models;
 ///   "port": 4455,
 ///   "password": "secret",
 ///   "buttonMap": { "0": {"action":"StartStreaming"} },
-///   "switchMap": { "1": {"action":"SetSourceVisibility", "parameter":"Camera,true"} },
-///   "axisMap":   { "2": {"action":"SetVolume", "parameter":"Mic,{{value}}"} }
+///   "switchMap": { "0": {"action":"SetSourceVisibility", "parameter":"Camera,true"} },
+///   "axisMap":   { "0": {"action":"SetVolume", "parameter":"Mic,{{value}}"} }
 /// }
 /// </summary>
 public class Mapping
@@ -22,12 +22,12 @@ public class Mapping
 
     public string Host { get; set; } = "localhost";
     public int Port { get; set; } = 4455;
-    public string? Password { get; set; }
+    public string Password { get; set; }
 
     // Index‑based dictionaries for buttons, switches and axes (keys are stringified integers)
-    public Dictionary<string, ButtonAction>? ButtonMap   { get; set; }
-    public Dictionary<string, ButtonAction>? SwitchMap   { get; set; }
-    public Dictionary<string, ButtonAction>? AxisMap     { get; set; }
+    public Dictionary<string, ButtonAction> ButtonMap   { get; set; }
+    public Dictionary<string, ButtonAction> SwitchMap   { get; set; }
+    public Dictionary<string, ButtonAction> AxisMap     { get; set; }
 }
 
 public class ButtonAction
@@ -36,9 +36,9 @@ public class ButtonAction
     /// Name of the OBS action to invoke.
     /// Supported values: StartStreaming, StopStreaming, ToggleRecording, SwitchScene, etc.
     /// </summary>
-    public string? Action { get; set; }
+    public string Action { get; set; }
 
     // Optional parameter for actions that need extra data (e.g., scene name)
-    public string? Parameter { get; set; }
+    public string Parameter { get; set; }
 }
 
