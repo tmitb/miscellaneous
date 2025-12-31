@@ -7,7 +7,6 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>ObsController</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

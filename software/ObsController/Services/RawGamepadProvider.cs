@@ -13,7 +13,7 @@ public static class RawGamepadProvider
     /// Attempts to locate a controller based on the optional GUID or index supplied in the mapping file.
     /// Returns an <see cref="IGamepadProvider"/> implementation (the real one) or <c>null</c> if none are found.
     /// </summary>
-    public static IGamepadProvider? TryCreate(int deviceId, string? deviceGuid = null)
+    public static IGamepadProvider? TryCreate(string deviceId)
     {
         
         var count = 0;
@@ -28,19 +28,17 @@ public static class RawGamepadProvider
             return null; // No raw gamepads available on this machine.
 
         // If a GUID is supplied, try to match it first.
-        if (!string.IsNullOrWhiteSpace(deviceGuid))
+        if (!string.IsNullOrWhiteSpace(deviceId))
         {
             foreach (var rc in RawGameController.RawGameControllers)
             {
-                if (rc.NonRoamableId.Equals(deviceGuid, StringComparison.OrdinalIgnoreCase))
+                if (rc.NonRoamableId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
                     return new RealRawGamepadProvider(rc);
             }
         }
 
         // Otherwise select by index (or fall back to the first controller).
-        var selected = deviceId >= 0 && deviceId < RawGameController.RawGameControllers.Count
-            ? RawGameController.RawGameControllers[deviceId]
-            : RawGameController.RawGameControllers[0];
+        var selected = RawGameController.RawGameControllers[0];
 
         Console.WriteLine($"[INFO] RawGameController detected – Id: {selected.NonRoamableId}");
         return new RealRawGamepadProvider(selected);

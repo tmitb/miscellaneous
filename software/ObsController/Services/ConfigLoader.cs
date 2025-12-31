@@ -11,7 +11,7 @@ namespace ObsController.Services;
 /// </summary>
 public static class ConfigLoader
 {
-    private const string DefaultMappingFile = "C:\\code\\miscellaneous\\software\\software\\mapping.json"; // path relative to repository root
+    private const string DefaultMappingFile = "C:\\code\\miscellaneous\\software\\mapping.json"; // path relative to repository root
 
     /// <summary>
     /// Reads the mapping file and returns a Mapping object. Throws if the file cannot be parsed.

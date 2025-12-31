@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Windows.Gaming.Input;
+using ObsController.Models;
 
 namespace ObsController.Services;
 
@@ -23,10 +24,14 @@ public sealed class RealRawGamepadProvider : IGamepadProvider
     private readonly RawGameController _controller;
     private readonly Timer _timer; // poll at a modest rate (e.g., 30 Hz)
     private bool _running;
-    private byte _previousMask = 0;
+    // Previous raw state used for diffing. Null until the first successful poll.
+    private ObsController.Models.ControllerState? _previousState;
 
+    // Legacy per‑button events (kept for backward compatibility)
     public event Action<string>? ButtonDown;
     public event Action<string>? ButtonUp;
+    // New high‑level event that delivers only the differences between two snapshots.
+    public event Action<ObsController.Models.ControllerDelta>? StateChanged;
 
     /// <summary>
     /// Constructs the provider for a concrete <c>RawGameController</c> instance.
@@ -59,61 +64,60 @@ public sealed class RealRawGamepadProvider : IGamepadProvider
         // returned as a byte[] wrapped in a Windows.Gaming.Input.GamepadReading.
         try
         {
-            bool[] buttons = new bool[_controller.ButtonCount];
-            GameControllerSwitchPosition[] switches = new GameControllerSwitchPosition[_controller.ButtonCount];
-            double[] axes = new double[_controller.AxisCount];
-            _controller.GetCurrentReading(buttons, switches, axes);
+            // Gather raw values directly from the controller into index‑based collections.
+            bool[]   buttonVals = new bool[_controller.ButtonCount];
+            // The RawGameController exposes a SwitchCount property. Use it if present; otherwise fall back to ButtonCount.
+            int switchCount = (_controller.GetType().GetProperty("SwitchCount")?.GetValue(_controller) as int?) ?? _controller.ButtonCount;
+            GameControllerSwitchPosition[] switchVals = new GameControllerSwitchPosition[switchCount];
+            double[] axisVals   = new double[_controller.AxisCount];
 
+            _controller.GetCurrentReading(buttonVals, switchVals, axisVals);
 
-            // The API gives us an IReadOnlyList<object>. Most often each element is a byte.
-            // Convert to a plain byte[] for easier handling.
-            var reportBytes = new List<byte>();
-            foreach (var obj in buttons)
+            var currentState = new ObsController.Models.ControllerState();
+
+            // Populate dictionaries with index → value.
+            for (int i = 0; i < buttonVals.Length; i++)
+                currentState.Buttons[i] = buttonVals[i];
+
+            for (int i = 0; i < switchVals.Length; i++)
+                currentState.Switches[i] = (int)switchVals[i];
+
+            for (int i = 0; i < axisVals.Length; i++)
+                currentState.Axes[i] = axisVals[i];
+
+            // If we have a previous snapshot, compute the delta and raise events.
+            if (_previousState != null)
             {
-                reportBytes.Add(Convert.ToByte(obj));
-            }
-            foreach(var obj in switches)
-            {
-                reportBytes.Add(Convert.ToByte((int)obj));
-            }
-            foreach(var obj in axes)
-            {
-                reportBytes.Add(Convert.ToByte(obj));
+                var delta = currentState.Diff(_previousState);
+                StateChanged?.Invoke(delta);
+                RaiseLegacyButtonEvents(delta.ButtonsChanged);
             }
 
-            DecodeAndRaiseEvents(reportBytes.ToArray());
+            // Store a copy for the next poll.
+            _previousState = currentState.Clone();
         }
         catch (Exception ex)
         {
-            // In a production implementation you would log this rather than swallow it.
+            // In production you would log this rather than swallow it.
             Console.WriteLine($"[ERROR] Exception while polling RawGameController: {ex.Message}");
         }
     }
 
-    /// <summary>
-    /// Decodes the raw HID report and raises ButtonDown/ButtonUp events based on edge detection.
-    /// The placeholder implementation looks at the first byte as a simple button mask.
-    /// </summary>
-    private void DecodeAndRaiseEvents(byte[] report)
+    // Helper that preserves the original per‑button events using the diff dictionary.
+    private void RaiseLegacyButtonEvents(IReadOnlyDictionary<int, bool> changedButtons)
     {
-        if (report.Length == 0) return;
-
-        byte currentMask = report[0]; // first byte = button bitmap in our example
-
-        // Detect newly pressed bits
-        byte down = (byte)(currentMask & ~_previousMask);
-        // Detect released bits
-        byte up = (byte)(_previousMask & ~currentMask);
-
-        foreach (var kvp in ButtonMap)
+        foreach (var kv in changedButtons)
         {
-            var flag = kvp.Key;
-            var name = kvp.Value;
-            if ((down & flag) != 0) ButtonDown?.Invoke(name);
-            if ((up & flag) != 0) ButtonUp?.Invoke(name);
-        }
+            int index = kv.Key;
+            bool pressed = kv.Value;
+            // Convert the button index to the bit flag used by ButtonMap.
+            byte flag = (byte)(1 << index);
+            if (!ButtonMap.TryGetValue(flag, out var name))
+                continue; // unknown mapping – ignore
 
-        _previousMask = currentMask;
+            if (pressed) ButtonDown?.Invoke(name);
+            else          ButtonUp?.Invoke(name);
+        }
     }
 
     // Mapping of bit positions to logical button names – adjust to match your device's report format.
@@ -136,4 +140,3 @@ public sealed class RealRawGamepadProvider : IGamepadProvider
         // RawGameController does not implement IDisposable, so nothing else is required.
     }
 }
-

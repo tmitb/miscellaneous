@@ -44,7 +44,7 @@ public class Program
 
             // Initialise controller provider using the RawGameController API (covers BLE devices)
 
-            IGamepadProvider? gp = RawGamepadProvider.TryCreate(mapping.DeviceId, mapping.DeviceGuid);
+            IGamepadProvider? gp = RawGamepadProvider.TryCreate(mapping.DeviceIdentifier);
 
             if (gp == null)
             {
@@ -54,12 +54,12 @@ public class Program
             }
             else
             {
-                Console.WriteLine($"[INFO] Gamepad detected (deviceId={mapping.DeviceId}).");
+                Console.WriteLine($"[INFO] Gamepad detected (deviceId={mapping.DeviceIdentifier}).");
             }
 
             gp.ButtonDown += async btnName => await HandleButtonAsync(btnName, mapping, obsBridge);
             gp.Start();
-            Console.WriteLine($"Listening on gamepad device {mapping.DeviceId}… Press Ctrl+C to exit.");
+            Console.WriteLine($"Listening on gamepad device {mapping.DeviceIdentifier}… Press Ctrl+C to exit.");
 
             // Wait until cancellation
             try
