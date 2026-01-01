@@ -4,10 +4,12 @@ namespace ObsController.Services;
 /// A do‑nothing implementation of IGamepadProvider used when no physical controller is present.
 /// It satisfies the interface so that the rest of the application can start and shut down cleanly.
 /// </summary>
+using ObsController.Models;
+
 public sealed class NullGamepadProvider : IGamepadProvider
 {
-    public event System.Action<string> ButtonDown;
-    public event System.Action<string> ButtonUp;
+    // No actual controller, so no state changes will ever be emitted.
+    public event System.Action<ControllerDelta> StateChanged;
 
     public void Start() { /* no polling */ }
     public void Stop()  { /* no polling */ }

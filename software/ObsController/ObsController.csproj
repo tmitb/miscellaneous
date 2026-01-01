@@ -8,12 +8,7 @@
     <RootNamespace>ObsController</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
-    <!-- Gamepad handling – we now use the managed Windows.Gaming.Input API.
-         SharpDX.XInput is kept only as a fallback for legacy controllers (optional).
-      -->
-    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
     <!-- JSON serialization (built‑in System.Text.Json works, but Newtonsoft is common) -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <!-- Command line parsing -->
@@ -21,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Unit‑test projects will reference this SDK as needed -->
+    <Content Include="mapping.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

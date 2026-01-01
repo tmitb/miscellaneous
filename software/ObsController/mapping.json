@@ -1,0 +1,14 @@
+{
+  "deviceIdentifier": "{wgi/nrid/5]ATln1>-kPKN6=4H-@HiU-`ABmQoR-hSEb-l}",
+  "host": "localhost",
+  "port": 4455,
+  "password": "",
+  "buttonMap": {
+    "0": { "action": "SwitchScene", "parameter": "Intro" },
+    "1": { "action": "SwitchScene", "parameter": "Main" },
+    "2": { "action": "SwitchScene", "parameter": "Outro" },
+    "3": { "action": "SwitchScene", "parameter": "Intermission" },
+    "5": { "action": "StartStreaming"},
+    "9": { "action": "StopStreaming"}
+  }
+}

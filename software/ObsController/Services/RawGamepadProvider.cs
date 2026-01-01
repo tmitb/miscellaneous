@@ -34,7 +34,7 @@ public static class RawGamepadProvider
         {
             foreach (var rc in RawGameController.RawGameControllers)
             {
-                if (rc.NonRoamableId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+                if (rc.NonRoamableId.Replace("\0", "").Equals(deviceId))
                     return new RealRawGamepadProvider(rc);
             }
         }
@@ -42,7 +42,7 @@ public static class RawGamepadProvider
         // Otherwise select by index (or fall back to the first controller).
         var selected = RawGameController.RawGameControllers[0];
 
-        Console.WriteLine($"[INFO] RawGameController detected – Id: {selected.NonRoamableId}");
+        Console.WriteLine($"[INFO] RawGameController selection failed. Using the first controller – Id: {selected.NonRoamableId}");
         return new RealRawGamepadProvider(selected);
     }
 }

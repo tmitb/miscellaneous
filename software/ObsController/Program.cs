@@ -45,19 +45,15 @@ public class Program
             // Initialise controller provider using the RawGameController API (covers BLE devices)
 
             IGamepadProvider gp = RawGamepadProvider.TryCreate(mapping.DeviceIdentifier);
+            ListAvailableGamepads(); // show what the OS sees so the user can adjust mapping.json
 
             if (gp == null)
             {
                 Console.WriteLine("[WARN] No Windows.Gaming.Input gamepad detected – controller will be idle.");
-                ListAvailableGamepads(); // show what the OS sees so the user can adjust mapping.json
                 gp = new NullGamepadProvider(); // do‑nothing fallback to keep the app alive
             }
-            else
-            {
-                Console.WriteLine($"[INFO] Gamepad detected (deviceId={mapping.DeviceIdentifier}).");
-            }
 
-            gp.ButtonDown += async btnName => await HandleButtonAsync(btnName, mapping, obsBridge);
+            gp.StateChanged += async states => await HandleStateChanges(states, mapping, obsBridge);
             gp.Start();
             Console.WriteLine($"Listening on gamepad device {mapping.DeviceIdentifier}… Press Ctrl+C to exit.");
 
@@ -72,40 +68,53 @@ public class Program
         return await rootCommand.InvokeAsync(args);
     }
 
-    private static async Task HandleButtonAsync(string buttonName, Mapping mapping, ObsBridge obs)
+    private static async Task HandleStateChanges(ControllerDelta changes, Mapping mapping, ObsBridge bridge)
     {
-        if (mapping.ButtonMap == null || !mapping.ButtonMap.TryGetValue(buttonName, out var action))
-            return; // unmapped button – ignore
+        if (mapping.ButtonMap == null)
+            return; // no mappings. skip further processing.
 
-        if (string.IsNullOrWhiteSpace(action.Action))
-            return;
 
-        try
+        foreach (var key in changes.ButtonsChanged.Keys)
         {
-            switch (action.Action)
+            if(!changes.ButtonsChanged[key]) // only run when it is pressed one can attach two actions to a button for each press and release respetively but we only care about a single action.
+                continue;
+
+            if (!mapping.ButtonMap.ContainsKey(key.ToString()))
+                continue;
+
+            var action = mapping.ButtonMap[key.ToString()];
+            if (string.IsNullOrWhiteSpace(action.Action))
+                continue;
+
+            
+            try
             {
-                case "StartStreaming":
-                    await obs.StartStreamingAsync();
-                    break;
-                case "StopStreaming":
-                    await obs.StopStreamingAsync();
-                    break;
-                case "ToggleRecording":
-                    await obs.ToggleRecordingAsync();
-                    break;
-                case "SwitchScene":
-                    if (!string.IsNullOrEmpty(action.Parameter))
-                        await obs.SwitchSceneAsync(action.Parameter);
-                    break;
-                default:
-                    Console.WriteLine($"[WARN] Unknown action '{action.Action}' for button {buttonName}.");
-                    break;
+                switch (action.Action)
+                {
+                    case "StartStreaming":
+                        await bridge.StartStreamingAsync();
+                        break;
+                    case "StopStreaming":
+                        await bridge.StopStreamingAsync();
+                        break;
+                    case "ToggleRecording":
+                        await bridge.ToggleRecordingAsync();
+                        break;
+                    case "SwitchScene":
+                        if (!string.IsNullOrEmpty(action.Parameter))
+                            await bridge.SwitchSceneAsync(action.Parameter);
+                        break;
+                    default:
+                        Console.WriteLine($"[WARN] Unknown action '{action.Action}' for button {key}.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] Failed to execute action '{action.Action}' for button {key}: {ex.Message}");
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[ERROR] Failed to execute action '{action.Action}' for button {buttonName}: {ex.Message}");
-        }
+        // No switch/axis handling because This app does not care.
     }
 
     /// <summary>
@@ -129,7 +138,7 @@ public class Program
             foreach (var gp in Windows.Gaming.Input.RawGameController.RawGameControllers)
             {
                 // The Id property is a GUID string that uniquely identifies the device.
-                Console.WriteLine($"   [{index}] Id: {gp.HardwareVendorId}");
+                Console.WriteLine($"   [{index}] Id: {gp.NonRoamableId.Replace("\0", "")}");
                 index++;
             }
         }
